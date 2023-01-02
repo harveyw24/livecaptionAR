@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>AVHubert Speech Transcription</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@700;900&family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/style.css') }}">
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="header">
+            <h1>
+                Audio-Visual Speech Transcription
+            </h1>
+            <br>
+            <h3>
+                Fall 2022 Independent Work
+            </h3>
+        </div>
+    
+        <div class="video-controls">
+            <button type="button" class="btn" id="btn-start-recording">Start Recording</button>
+            <button type="button" class="btn" id="btn-stop-recording" disabled>Stop Recording</button>
+        </div>
+    
+        <div class="media-player">
+            <video controls autoplay playsinline></video>
+            <div class="textfiles">
+                <div class="textfiles-header">
+                    <h3>Output Files</h3>
+                </div>
+                    <div class="items-body">
+                        <!-- <div class="items-body-row">
+                            <span class="text-preview"><h3 class="file-name">File_1_Name</h3>test preview with a lot of text so as to exceed the limit</span>
+                            <div class="btn download-btn">
+                                <i class="fa fa-download"></i>
+                            </div>
+                        </div> -->
+                </div>
+            </div>
+        </div>
+    
+        <div class="footer"><p>Harvey Wang</p></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='javascript/recorder.js') }}"></script>
+    <script src="https://www.WebRTC-Experiment.com/RecordRTC.js"></script>
+    <script src="https://www.webrtc-experiment.com/common.js"></script>
+</body>
+
+</html>

@@ -23,7 +23,7 @@ from scipy.io import wavfile
 DBG=True if len(sys.argv) == 1 else False
 
 if DBG:
-    import utils as custom_utils
+    import avhubert.utils as custom_utils
     logging.basicConfig(
         format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -49,8 +49,12 @@ def load_audio_visual(manifest_path, max_keep, min_keep, frame_rate, label_paths
         dur_from_label_list.append(label_lengths)
     dur_from_label_list = list(zip(*dur_from_label_list))
 
+    print("min keep:", min_keep)
+    print("max keep:", max_keep)
+
     with open(manifest_path) as f:
         root = f.readline().strip()
+
         for ind, line in enumerate(f):
             items = line.strip().split("\t")
             sz = int(items[-2]) # 
@@ -72,9 +76,12 @@ def load_audio_visual(manifest_path, max_keep, min_keep, frame_rate, label_paths
         (
             f"max_keep={max_keep}, min_keep={min_keep}, "
             f"loaded {len(names)}, skipped {n_short} short and {n_long} long and {n_unaligned} unaligned, "
-            f"longest-loaded={max(sizes)}, shortest-loaded={min(sizes)}"
+            # f"longest-loaded={max(sizes)}, shortest-loaded={min(sizes)}"
         )
     )
+    print("manifest path:", manifest_path)
+    print("root: ", root)
+    print("names:", names)
     return root, names, inds, tot, sizes
 
 def load_label(label_path, inds, tot):
@@ -188,6 +195,7 @@ class AVHubertDataset(FairseqDataset):
         self.single_target = single_target
         self.store_labels = store_labels
         self.is_s2s = is_s2s
+        print("noise_fn: ", noise_fn)
         self.noise_wav, self.noise_prob, self.noise_snr, self.noise_num = [ln.strip() for ln in open(noise_fn).readlines()] if noise_fn is not None else [], noise_prob, noise_snr, noise_num
 
         assert self.single_target == (self.label_rates[0] == -1), f"single target should be equivalent to sequence label (label_rate==-1)"
@@ -272,14 +280,19 @@ class AVHubertDataset(FairseqDataset):
                 feats = np.concatenate([feats, res], axis=0)
             feats = feats.reshape((-1, stack_order, feat_dim)).reshape(-1, stack_order*feat_dim)
             return feats
+        print("mix name:", mix_name)
         video_fn, audio_fn = mix_name
         if 'video' in self.modalities:
             video_feats = self.load_video(video_fn) # [T, H, W, 1]
         else:
             video_feats = None
         if 'audio' in self.modalities:
+            print("AUDIO MODALITY")
             audio_fn = audio_fn.split(':')[0]
+            print("audio_fn:", audio_fn)
             sample_rate, wav_data = wavfile.read(audio_fn)
+            print("sample_rate:", sample_rate)
+            print("wav_data.shape:", wav_data.shape)
             assert sample_rate == 16_000 and len(wav_data.shape) == 1
             if np.random.rand() < self.noise_prob:
                 wav_data = self.add_noise(wav_data)
@@ -296,6 +309,8 @@ class AVHubertDataset(FairseqDataset):
         return video_feats, audio_feats
 
     def load_video(self, audio_name):
+        print("self.audio_root:", self.audio_root)
+        print("audio_name:", audio_name)
         feats = custom_utils.load_video(os.path.join(self.audio_root, audio_name))
         feats = self.transform(feats)
         feats = np.expand_dims(feats, axis=-1)

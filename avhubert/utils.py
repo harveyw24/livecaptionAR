@@ -11,6 +11,7 @@ import numpy as np
 from typing import Dict, List, Optional, Tuple
 
 def load_video(path):
+    print("path:", path)
     for i in range(3):
         try:
             cap = cv2.VideoCapture(path)

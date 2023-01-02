@@ -24,8 +24,8 @@ from argparse import Namespace
 DBG=True if len(sys.argv) == 1 else False
 
 if DBG:
-    from hubert_dataset import AVHubertDataset
-    from sequence_generator import SequenceGenerator
+    from .hubert_dataset import AVHubertDataset
+    from .sequence_generator import SequenceGenerator
 else:
     from .hubert_dataset import AVHubertDataset
     from .sequence_generator import SequenceGenerator
@@ -239,6 +239,8 @@ class AVHubertPretrainingTask(FairseqTask):
             f"{self.get_label_dir()}/{split}.{l}" for l in self.cfg.labels
         ]
         image_aug = self.cfg.image_aug if split == 'train' else False
+        print(self.cfg)
+        print("self.cfg.noise_wav: ", self.cfg.noise_wav)
         noise_fn, noise_snr = f"{self.cfg.noise_wav}/{split}.tsv" if self.cfg.noise_wav is not None else None, eval(self.cfg.noise_snr)
         noise_num = self.cfg.noise_num # 
         self.datasets[split] = AVHubertDataset(

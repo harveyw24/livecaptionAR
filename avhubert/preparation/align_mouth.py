@@ -88,6 +88,7 @@ def cut_patch(img, landmarks, height, width, threshold=5):
 
 def write_video_ffmpeg(rois, target_path, ffmpeg):
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
+    # os.makedirs(target_path, exist_ok=True)
     decimals = 10
     fps = 25
     tmp_dir = tempfile.mkdtemp()
