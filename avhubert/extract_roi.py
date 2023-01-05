@@ -42,16 +42,16 @@ def play_video(video_path, width=200):
       else:
           break
 
-# def detect_landmark(image, detector, predictor):
-#     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-#     rects = detector(gray, 1)
-#     coords = None
-#     for (_, rect) in enumerate(rects):
-#         shape = predictor(gray, rect)
-#         coords = np.zeros((68, 2), dtype=np.int32)
-#         for i in range(0, 68):
-#             coords[i] = (shape.part(i).x, shape.part(i).y)
-#     return coords
+def find_landmark(image, detector, predictor):
+    gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    rects = detector(gray, 1)
+    coords = None
+    for (_, rect) in enumerate(rects):
+        shape = predictor(gray, rect)
+        coords = np.zeros((68, 2), dtype=np.int32)
+        for i in range(0, 68):
+            coords[i] = (shape.part(i).x, shape.part(i).y)
+    return coords
 
 
 def preprocess_video(input_video_path, output_video_path, face_predictor_path, mean_face_path):

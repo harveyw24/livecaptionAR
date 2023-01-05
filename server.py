@@ -2,6 +2,8 @@ from flask import Flask, Response, render_template, jsonify, request, send_file
 from camera import VideoCamera
 import os
 import time
+import base64
+import subprocess
 
 from model import HubertModel
 
@@ -73,11 +75,28 @@ def upload_file():
         name = time.strftime("%Y%m%d-%H%M%S")
         unique_name = f'{name}{os.path.splitext(f.filename)[-1]}'
         f.save(f'{wd}/data/video-orig/{unique_name}')
+        command = f'ffmpeg -r 25 -i streamlit_app/%d.jpg -vf scale=850:480 {wd}/data/video-comp/{os.path.splitext(unique_name)[0]}_compressed.mp4'
+        subprocess.call(command, shell=True)
         prediction = app.model.transcribe(unique_name)
         # prediction = "sample text"
         response = Response(prediction)
         response.headers['filename'] = name + '.txt'
         return response
+
+@app.route('/upload_image', methods=['POST'])
+def save_photo():
+    # get the image data from the request
+    image_data = request.json['imageString']
+    image_num = request.json['imageNum']
+
+    # decode the base-64 encoded image data
+    image_data = base64.b64decode(image_data)
+
+    # save the image data to a file
+    with open(f'{wd}/streamlit_app/{image_num}.jpg', 'wb') as f:
+        f.write(image_data)
+
+    return "OK"
 
 if __name__=='__main__':
     # app.run(host='127.0.0.1', port=8080, threaded = True, debug=True)

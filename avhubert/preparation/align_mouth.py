@@ -137,6 +137,7 @@ def crop_patch(video_pathname, landmarks, mean_face_landmarks, stablePntsIDs, ST
 
     frame_idx = 0
     num_frames = get_frame_count(video_pathname)
+    print(num_frames)
     frame_gen = read_video(video_pathname)
     margin = min(num_frames, window_margin)
     while True:

@@ -92,8 +92,8 @@ class HubertModel:
 
         # Preprocess
         if not exists('/' + mouth_roi_path):
-            command = f'ffmpeg -i {orig_vid_path} -vcodec libx265 -crf 28 -r 25 -vf scale=850:480 -ac 1 {compress_vid_path}'
-            subprocess.call(command, shell=True)
+            # command = f'ffmpeg -i {orig_vid_path} -vcodec libx265 -crf 28 -r 25 -vf scale=850:480 -ac 1 {compress_vid_path}'
+            # subprocess.call(command, shell=True)
 
             # EXTRACT ROI
             face_predictor_path = f"{self.wd}/data/misc/shape_predictor_68_face_landmarks.dat"
@@ -101,7 +101,8 @@ class HubertModel:
             extract_roi.preprocess_video(compress_vid_path, '/' + mouth_roi_path, face_predictor_path, mean_face_path)
 
             # EXTRACT AUDIO
-            command = f"ffmpeg -i {compress_vid_path} -ar 16000 -ac 1 -f wav {audio_path}"
+            # command = f"ffmpeg -i {compress_vid_path} -ar 16000 -ac 1 -f wav {audio_path}"
+            command = f"ffmpeg -i {orig_vid_path} -ar 16000 -ac 1 -f wav {audio_path}"
             subprocess.call(command, shell=True)
 
 

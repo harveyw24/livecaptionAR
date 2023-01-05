@@ -1,8 +1,11 @@
+const FRAMERATE = 25
 var video = document.querySelector('video');
 var textfiles = document.querySelector('.textfiles')
 var filelist = document.querySelector('.items-body')
 var recorder;
 var outputs = [];
+let counter = 1;
+let intervalId = 0
 
 var show = (elem) => {
     elem.style.display = 'block';
@@ -84,7 +87,8 @@ document.getElementById('btn-start-recording').onclick = function() {
         video.srcObject = camera;
 
         recorder = RecordRTC(camera, {
-            type: 'video'
+            type: 'video',
+            canvas: {width: 640, height: 480},
         });
 
         var mediaContainer = document.querySelector('.media-player');
@@ -99,12 +103,45 @@ document.getElementById('btn-start-recording').onclick = function() {
 
         document.getElementById('btn-stop-recording').disabled = false;
     });
+
+    console.log("Starting interval")
+    intervalId = setInterval(captureFrame, 1000 / FRAMERATE)
 };
 
 document.getElementById('btn-stop-recording').onclick = function() {
     this.disabled = true;
     recorder.stopRecording(stopRecordingCallback);
+    console.log("Clearing interval");
+    clearInterval(intervalId);
+    counter = 0;
 };
+
+var canvas = document.createElement("canvas");
+canvas.width = 320
+canvas.height = 240
+var ctx = canvas.getContext("2d");
+function captureFrame() {
+    if (recorder) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        console.log(video.videoWidth, video.videoHeight)
+        var imageData = canvas.toDataURL("image/jpeg").replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+        uploadImage(imageData, counter)
+        counter += 1
+    }
+}
+
+async function uploadImage(imageData, counter) {
+    let response = await fetch('/upload_image', {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            imageString: imageData,
+            imageNum: counter,
+        })
+    })
+}
 
 async function uploadFile(recording) {
         let data = new FormData(); 
