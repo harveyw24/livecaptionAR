@@ -35,11 +35,6 @@ function stopRecordingCallback() {
     // Stop device streaming
     recorder.camera.stop()
 
-    // video.src = video.srcObject = null;
-    // video.muted = false;
-    // video.volume = 1;
-    // video.src = URL.createObjectURL(recorder.getBlob());
-
     let recording = new File([recorder.getBlob()], 'recording.webm', {type: 'video/webm'});
     uploadFile(recording);
 
@@ -176,6 +171,4 @@ async function uploadFile(recording) {
         }
         
         console.log(outputs)
-
-        // alert('The file has been uploaded successfully.');
 };

@@ -1,9 +1,7 @@
-from flask import Flask, Response, render_template, jsonify, request, send_file
+from flask import Flask, Response, render_template, jsonify, request
 from camera import VideoCamera
 import os
-import time
 import base64
-import subprocess
 
 from model import HubertModel
 import config as cfg
@@ -71,7 +69,6 @@ def upload_file():
     f = request.files['file']
     if f.filename == '':
         return
-    # name = time.strftime("%Y%m%d-%H%M%S")
 
     # Retrieve unique name from server
     name = request.form['batchName']
@@ -84,7 +81,6 @@ def upload_file():
     if cfg.DEBUG:
         prediction = "sample text"
     else:
-        # prediction = app.model.transcribe(unique_name)
         try:
             prediction = app.model.get_transcription(name, full_name, landmarks)
         except Exception as e:
@@ -104,10 +100,6 @@ def save_photo():
     image_data = request.json['imageString']
     image_num = request.json['imageNum']
     batch_name = request.json['batchName']
-
-    # create dictionary for batch if needed
-    # if batch_name not in app.landmarks:
-        # app.landmarks[batch_name] = {}
     
     # decode base 64 image
     image_data_decoded = base64.b64decode(image_data)
@@ -119,14 +111,8 @@ def save_photo():
     with open(f'{path}/{image_num}.jpg', 'wb') as f:
         f.write(image_data_decoded)
 
-    # TODO: GENERATE UNIQUE NAME ON SERVER SIDE FROM START OF BUTTON RECORDING
-    # process image (don't need to save?)
-    # TODO: spawn worker to do this concurrently?
     coords = app.model.get_landmark(image_data_decoded)
     app.landmarks[image_num] = coords
-    # app.landmarks[batch_name][image_num] = coords
-
-    # print(app.landmarks)
 
     return "OK"
 

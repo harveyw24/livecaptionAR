@@ -1,15 +1,3 @@
-# import cv2
-# import tempfile
-# from argparse import Namespace
-
-# import fairseq
-# from fairseq import tasks, utils
-# from fairseq.dataclass.configs import GenerationConfig
-
-import fairseq
-from avhubert import hubert_pretraining, hubert
-from avhubert import extract_roi
-
 import cv2
 import tempfile
 from argparse import Namespace
@@ -20,7 +8,6 @@ import torch
 from os.path import exists
 import subprocess
 import numpy as np
-import base64
 
 import fairseq
 from fairseq import checkpoint_utils, options, tasks, utils
@@ -130,48 +117,5 @@ class HubertModel:
             shutil.rmtree(images_dir)
         except OSError as e:
             print("Error: %s - %s." % (e.filename, e.strerror))
-
-        return newHypo
-        
-
-
-    def transcribe(self, file_name):
-        orig_vid_path = self.wd + f'/data/video-orig/{file_name}'
-        updated_file_name = os.path.splitext(file_name)[0]
-        compress_vid_path = self.wd + f'/data/video-comp/{updated_file_name}_compressed.mp4'
-        mouth_roi_path = self.wd[1:] + f'/data/video-roi/{updated_file_name}_roi.mp4'
-        audio_path = self.wd + f'/data/audio/{updated_file_name}_audio.wav'
-
-        if not exists(orig_vid_path):
-            print(f'File [{orig_vid_path}] does not exist')
-            return
-
-        # Preprocess
-        if not exists('/' + mouth_roi_path):
-            # command = f'ffmpeg -i {orig_vid_path} -vcodec libx265 -crf 28 -r 25 -vf scale=850:480 -ac 1 {compress_vid_path}'
-            # subprocess.call(command, shell=True)
-
-            # EXTRACT ROI
-            face_predictor_path = f"{self.wd}/data/misc/shape_predictor_68_face_landmarks.dat"
-            mean_face_path = f"{self.wd}/data/misc/20words_mean_face.npy"
-            extract_roi.preprocess_video(compress_vid_path, '/' + mouth_roi_path, face_predictor_path, mean_face_path)
-
-            # EXTRACT AUDIO
-            # command = f"ffmpeg -i {compress_vid_path} -ar 16000 -ac 1 -f wav {audio_path}"
-            command = f"ffmpeg -i {orig_vid_path} -ar 16000 -ac 1 -f wav {audio_path}"
-            subprocess.call(command, shell=True)
-
-
-        user_dir = "./"
-        newHypo = self.predict(mouth_roi_path, audio_path, user_dir, self.models, self.cfg, self.task)
-        print(newHypo)
-
-        with open(f'{self.wd}/data/transcriptions/{updated_file_name}.txt', 'w') as f:
-            f.write(f'{file_name} - Speech Transcription\n')
-            f.write(newHypo) 
-
-        # Delete original file
-        print("Cleaning original video folder")
-        os.remove(orig_vid_path)
 
         return newHypo
