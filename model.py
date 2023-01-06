@@ -13,23 +13,28 @@ from avhubert import extract_roi
 import cv2
 import tempfile
 from argparse import Namespace
-import fairseq
-import sys
-import pickle
-import joblib
-from fairseq import checkpoint_utils, options, tasks, utils
-from fairseq.dataclass.configs import GenerationConfig
-import torch
+import dlib
 import os
+import shutil
+import torch
 from os.path import exists
 import subprocess
+import numpy as np
+import base64
+
+import fairseq
+from fairseq import checkpoint_utils, options, tasks, utils
+from fairseq.dataclass.configs import GenerationConfig
 from avhubert import extract_roi
 
 class HubertModel:
-    def __init__(self, ckpt_path, wd):
-        models, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt_path])
+    def __init__(self, wd = os.getcwd(), ckpt_path = None, predictor_path = None, mean_face_path = None):
+        models, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([wd + ckpt_path])
         self.models, self.cfg, self.task = models, cfg, task
         self.wd = wd
+        self.detector = dlib.get_frontal_face_detector()
+        self.predictor = dlib.shape_predictor(wd + predictor_path)
+        self.mean_face = np.load(wd + mean_face_path)
         print("Successfuly loaded model")
     
     def predict(self, video_path, audio_path, user_dir, models, cfg, task):
@@ -78,6 +83,57 @@ class HubertModel:
         hypo = hypos[0][0]['tokens'].int().cpu()
         hypo = decode_fn(hypo)
         return hypo
+
+    def get_landmark(self, base64imgdata):
+        image_arr = np.frombuffer(base64imgdata, dtype=np.uint8)
+        img = cv2.imdecode(image_arr, flags=cv2.IMREAD_COLOR)
+        coords = extract_roi.find_landmark(img, self.detector, self.predictor)
+        return coords
+
+    def get_transcription(self, file_name, file_full_name, landmarks):
+        images_dir = f'{self.wd}/data/temp/{file_name}'
+        orig_vid_path = self.wd + f'/data/video-orig/{file_full_name}'
+        compress_vid_path = self.wd + f'/data/video-comp/{file_name}_compressed.mp4'
+        mouth_roi_path = self.wd[1:] + f'/data/video-roi/{file_name}_roi.mp4'
+        audio_path = self.wd + f'/data/audio/{file_name}_audio.wav'
+
+        if not exists(images_dir):
+            print(f'Folder [{images_dir}] does not exist')
+            return
+
+        # Generate compressed video from input images and clean up
+        command = f'ffmpeg -r 25 -i {images_dir}/%d.jpg -vf scale=850:480 {compress_vid_path}'
+        subprocess.call(command, shell=True)
+
+        # Extract ROI
+        extract_roi.crop_video(compress_vid_path, f'/{mouth_roi_path}', landmarks, self.mean_face)
+
+        # Extract audio
+        command = f"ffmpeg -i {orig_vid_path} -ar 16000 -ac 1 -f wav {audio_path}"
+        subprocess.call(command, shell=True)
+
+        # Make prediction
+        user_dir = "./"
+        newHypo = self.predict(mouth_roi_path, audio_path, user_dir, self.models, self.cfg, self.task)
+        print(newHypo)
+
+        # Save prediction to text file
+        with open(f'{self.wd}/data/transcriptions/{file_name}.txt', 'w') as f:
+            f.write(f'{file_name} - Speech Transcription\n')
+            f.write(newHypo) 
+
+        # Delete original file
+        print("Cleaning original video folder")
+        os.remove(orig_vid_path)
+
+        try:
+            shutil.rmtree(images_dir)
+        except OSError as e:
+            print("Error: %s - %s." % (e.filename, e.strerror))
+
+        return newHypo
+        
+
 
     def transcribe(self, file_name):
         orig_vid_path = self.wd + f'/data/video-orig/{file_name}'

@@ -1,0 +1,1 @@
+# TODO: automate setup process for setting up directories

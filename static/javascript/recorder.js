@@ -4,8 +4,9 @@ var textfiles = document.querySelector('.textfiles')
 var filelist = document.querySelector('.items-body')
 var recorder;
 var outputs = [];
-let counter = 1;
+let counter = 0;
 let intervalId = 0
+let batch = -1
 
 var show = (elem) => {
     elem.style.display = 'block';
@@ -50,6 +51,10 @@ function stopRecordingCallback() {
     document.getElementById('btn-start-recording').disabled = false;
 }
 
+function updateBatch() {
+    batch = Date.now();
+}
+
 function generateTxtFile(text) {
     var textFile = null;
     var data = new Blob([text], {type: 'text/plain'}); 
@@ -80,6 +85,7 @@ show(textfiles);
 
 document.getElementById('btn-start-recording').onclick = function() {
     this.disabled = true;
+    updateBatch();
 
     captureCamera(function(camera) {
         video.muted = true;
@@ -123,7 +129,6 @@ var ctx = canvas.getContext("2d");
 function captureFrame() {
     if (recorder) {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-        console.log(video.videoWidth, video.videoHeight)
         var imageData = canvas.toDataURL("image/jpeg").replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
         uploadImage(imageData, counter)
         counter += 1
@@ -139,6 +144,7 @@ async function uploadImage(imageData, counter) {
         body: JSON.stringify({
             imageString: imageData,
             imageNum: counter,
+            batchName: batch,
         })
     })
 }
@@ -146,6 +152,7 @@ async function uploadImage(imageData, counter) {
 async function uploadFile(recording) {
         let data = new FormData(); 
         data.append("file", recording);
+        data.append("batchName", batch)
         let response = await fetch('/upload', {
             method: "POST", 
             body: data

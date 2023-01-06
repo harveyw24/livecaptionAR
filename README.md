@@ -1,4 +1,12 @@
 # AV-HuBERT (Audio-Visual Hidden Unit BERT)
+Harvey Wang Fall 2022 Independent Work
+
+1. Install dependencies
+2. Install programs from programs.txt
+3. Run setup.py
+4. Start server with server.py
+
+
 [Learning Audio-Visual Speech Representation by Masked Multimodal Cluster Prediction](https://arxiv.org/abs/2201.02184)
 
 [Robust Self-Supervised Audio-Visual Speech Recognition](https://arxiv.org/abs/2201.01763)
