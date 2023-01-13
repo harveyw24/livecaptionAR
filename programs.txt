@@ -1,1 +1,2 @@
 dlib: conda install -c conda-forge dlib
+ffmpeg

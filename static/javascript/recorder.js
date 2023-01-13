@@ -1,3 +1,5 @@
+// Adapted from https://github.com/muaz-khan/RecordRTC/blob/master/simple-demos/video-recording.html
+
 const FRAMERATE = 25
 var video = document.querySelector('video');
 var textfiles = document.querySelector('.textfiles')
@@ -144,7 +146,10 @@ async function uploadImage(imageData, counter) {
     })
 }
 
+var startTime, endTime;
+
 async function uploadFile(recording) {
+        startTime = new Date();
         let data = new FormData(); 
         data.append("file", recording);
         data.append("batchName", batch)
@@ -169,6 +174,14 @@ async function uploadFile(recording) {
 
             updateList(outputs.length - 1)
         }
+        endTime = new Date();
+        var timeDiff = endTime - startTime; //in ms
+        // strip the ms
+        timeDiff /= 1000;
+
+        // get seconds 
+        var seconds = Math.round(timeDiff);
+        console.log(timediff + " seconds");
         
         console.log(outputs)
 };

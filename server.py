@@ -107,7 +107,10 @@ def save_photo():
     # save the image data to a folder based on batch name
     path = f'{wd}/data/temp/{batch_name}'
     if not os.path.exists(path):
-        os.makedirs(path)
+        try:
+            os.makedirs(path)
+        except:
+            print("Folder already exists")
     with open(f'{path}/{image_num}.jpg', 'wb') as f:
         f.write(image_data_decoded)
 
